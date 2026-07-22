@@ -1,0 +1,8 @@
+{
+  "name": "engineering-standards",
+  "version": "1.0.0",
+  "description": "Universal engineering standards enforced on every code change: architecture layering, file/function size limits, DRY, security, anti-patching rules, review checklist, and a 6-dimension quality scorecard.",
+  "author": {
+    "name": "Uninote Engineering"
+  }
+}

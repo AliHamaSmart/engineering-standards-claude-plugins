@@ -1,0 +1,19 @@
+{
+  "name": "uninote-plugins",
+  "owner": {
+    "name": "Uninote Engineering"
+  },
+  "metadata": {
+    "description": "Internal Claude Code plugins for Uninote engineering standards and workflows",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "engineering-standards",
+      "source": "./plugins/engineering-standards",
+      "description": "Universal engineering standards enforced on every code change: architecture layering, size limits, DRY, security, anti-patching, review checklist, and a 6-dimension quality scorecard (maintainability, scalability, performance, security, DRY, readability).",
+      "version": "1.0.0",
+      "category": "development"
+    }
+  ]
+}
