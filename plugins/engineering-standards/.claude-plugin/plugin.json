@@ -1,8 +1,20 @@
 {
   "name": "engineering-standards",
-  "version": "1.0.0",
-  "description": "Universal engineering standards enforced on every code change: architecture layering, file/function size limits, DRY, security, anti-patching rules, review checklist, and a 6-dimension quality scorecard.",
+  "version": "1.1.0",
+  "description": "Universal engineering standards enforced on every code change: project discovery protocol, architecture layering, file/function size limits, DRY, security, anti-patching rules, review checklist, quality scorecard, and CI enforcement templates.",
   "author": {
     "name": "Uninote Engineering"
-  }
+  },
+  "skills": [
+    {
+      "name": "engineering-standards",
+      "path": "skills/engineering-standards",
+      "description": "Always-active engineering standards with project discovery. Auto-adapts to any project type (Node, Python, Go, Rust, Ruby, Java, mobile, CLI, IaC, data pipelines). Enforces architecture layering, size limits, DRY, security, anti-patching, and clean code rules."
+    },
+    {
+      "name": "engineering-standards-ci",
+      "path": "skills/engineering-standards-ci",
+      "description": "Generate CI/CD configurations that enforce engineering standards in your pipeline. Detects project type and generates GitHub Actions workflows, pre-commit hooks, and PR templates with engineering standards checks."
+    }
+  ]
 }

@@ -4,15 +4,15 @@
     "name": "Uninote Engineering"
   },
   "metadata": {
-    "description": "Internal Claude Code plugins for Uninote engineering standards and workflows",
-    "version": "1.0.0"
+    "description": "Universal engineering standards for Claude Code — project discovery, architecture layering, file/function limits, DRY, security, anti-patching, code review, quality scoring, and CI enforcement. Works with any project type.",
+    "version": "1.1.0"
   },
   "plugins": [
     {
       "name": "engineering-standards",
       "source": "./plugins/engineering-standards",
-      "description": "Universal engineering standards enforced on every code change: architecture layering, size limits, DRY, security, anti-patching, review checklist, and a 6-dimension quality scorecard (maintainability, scalability, performance, security, DRY, readability).",
-      "version": "1.0.0",
+      "description": "Universal engineering standards for Claude Code — auto-detects your project, adapts rules, and enforces architecture layering, size limits, DRY, security, and clean code. Includes CI enforcement (GitHub Actions, pre-commit, PR templates). No configuration needed.",
+      "version": "1.1.0",
       "category": "development"
     }
   ]

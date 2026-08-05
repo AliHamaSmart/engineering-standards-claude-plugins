@@ -1,16 +1,63 @@
 ---
 name: engineering-standards
-description: Enforce professional engineering standards whenever writing, modifying, refactoring, or reviewing code in ANY language, framework, or project. Use this skill EVERY time code is produced or changed — new features, bug fixes, refactors, scripts, boilerplate, code review, or PR review — even if the user does not mention "standards", "architecture", or "clean code". Covers architecture layering, file/function size limits, DRY, naming, error handling, testing, and anti-patching rules. If code is being written in this session, this skill applies.
+description: Enforce professional engineering standards automatically whenever writing, modifying, refactoring, or reviewing code in ANY language, framework, or project. Auto-triggered: fires on ANY operation that produces or changes code — including but not limited to Write, Edit, MultiEdit, Bash code generation, and code review actions. This is an ALWAYS-ACTIVE skill, not a slash command skill. It activates on every code write or modification regardless of whether the user prompt mentions "standards", "architecture", "clean code", "review", or "PR". Also auto-activates on code review, code audit, quality rating, and PR review requests. If code is being written, modified, or reviewed in this session, this skill applies — no explicit invocation needed.
 ---
 
-# Engineering Standards (Universal)
+# Engineering Standards (Universal — Always Active)
 
-These standards apply to ALL code in ANY language or framework. They are constraints, not suggestions. If a user request conflicts with these rules, follow the rules and explain the deviation — do not silently violate them. If the project has its own conventions (a CLAUDE.md, style guide, or existing patterns in the codebase), project conventions win on specifics; these rules fill the gaps.
+**ALWAYS-ACTIVE SKILL** — These engineering standards are enforced on every code operation automatically. No slash command needed. Fires whenever Write, Edit, MultiEdit, or code generation occurs.
 
-## Hard limits (never violate)
+These standards apply to ALL code in ANY language or framework. They are constraints, not suggestions. If the project has its own conventions (a `CLAUDE.md`, style guide, or existing patterns in the codebase), project conventions win on specifics; these rules fill the gaps.
+
+## Phase 0: Project Discovery (run once, at the start of every task)
+
+Before applying any rules, **scan the project to understand what you are working with**. This makes standards adapt to the project instead of the project bending to standards.
+
+```
+1. LIST top-level files — what exists? (package.json? Cargo.toml? go.mod? requirements.txt? Gemfile? Makefile? Justfile? pyproject.toml? .env.example?)
+2. LIST top-level directories — what structure exists? (src/?, lib/?, app/?, api/?, core/?, domain/?)
+3. CHECK for existing patterns — any CLAUDE.md? CONTRIBUTING.md? tsconfig.json? .eslintrc? Makefile targets? CI config (.github/, .gitlab-ci.yml)?
+4. INFER — what language? what framework? what testing setup? what CI? what style conventions?
+5. INJECT — adapt ALL rules below based on findings. Use the project's existing test framework, linter, and style guide rather than inventing new ones.
+```
+
+**Output of discovery:** Briefly note what you found to the user (1-2 lines max). Then proceed with rules adapted to the project.
+
+Examples of what discovery might reveal:
+- `package.json` + `tsconfig.json` + `jest.config.*` → Node/TypeScript with Jest; enforce TypeScript strict mode, use `@jest/globals` patterns.
+- `go.mod` + `golangci-lint.yaml` → Go project; use `golangci-lint` config as baseline, follow go idioms.
+- `Cargo.toml` → Rust project; use `clippy` rules, follow `rustfmt` conventions.
+- `requirements.txt` + `Makefile` (with `test` target) → Python; use whatever test runner the Makefile/test target invokes.
+- `Gemfile` → Ruby; use whatever gem-based linting the project has.
+- **No project files at all** → apply default universal rules below, and flag the lack of tooling as tech debt to propose.
+
+Discovery is lightweight and stateless — re-run it at the start of every new task to account for project evolution.
+
+## Rules (modular — read the relevant ones as needed)
+
+| File | When to read |
+|------|-------------|
+| `rules/file-size.md` | Always — hard limits apply to every output |
+| `rules/decomposition.md` | Always — before writing or reviewing business logic |
+| `rules/anti-patching.md` | When modifying existing code |
+| `rules/clean-code.md` | Always — naming, DRY, comments, types |
+| `rules/security.md` | When writing data access, auth, or handling user input |
+
+### Reading reference files (on-demand)
+
+| File | When to read |
+|------|-------------|
+| `references/architecture-patterns.md` | Designing a new module/feature structure |
+| `references/infrastructure-as-code.md` | Working on IaC (Terraform, Pulumi, CDK, Ansible, K8s, Helm) |
+| `references/review-checklist.md` | Asked to review code or a PR |
+| `references/quality-scorecard.md` | Asked to rate/score/audit code quality |
+
+## Core principles (always active, summarized)
+
+### Hard limits (never violate)
 
 | Rule | Limit |
-|------|-------|
+|------|------|
 | File length | ≤ 550 lines. If output would exceed this, plan the module split BEFORE writing. |
 | Function/method length | ≤ 40 lines. Extract helpers when longer. |
 | Function parameters | ≤ 5. Group into an object/struct/record beyond that. |
@@ -20,86 +67,28 @@ These standards apply to ALL code in ANY language or framework. They are constra
 
 Never produce a single monolithic file "to make it work first". Working-but-unmaintainable is a failed output.
 
-## Business logic decomposition (objectively detect)
-
-Before writing or reviewing code, scan **imports and I/O patterns** to classify logic:
-
-- **Business logic (must be pure):** only stdlib imports, no HTTP/DB/file/framework, deterministic input→output, no side effects.
-- **Non-business (infrastructure/edges):** imports HTTP client, DB driver, file system, framework, or vendor SDK.
-
-**Split criteria — MUST decompose when any apply:**
-- Function handles > 3 distinct responsibilities (validate + transform + persist).
-- Function has > 2 major conditional branches in sequence.
-- Function exceeds 40 lines OR nesting > 3 levels.
-- Logic references transport/framework types (request, response, ORM entity) outside edges.
-
-**Naming inference (follow the project, don't guess):**
-1. Scan directory structure and existing naming — if you see `core/`, `domain/`, `usecases/`, `handlers/`, `api/`, `features/`, follow those.
-2. Check `CLAUDE.md`, `tsconfig`, `package.json`, `pyproject.toml`, or project-style guides for layer conventions.
-3. Infer layers from import direction: files importing only stdlib are candidates for core; files importing `express`, `prisma`, `axios` are edges.
-4. If no structure exists, propose a minimal split and implement the split — don't dump everything in one place.
-
-## Architecture: separation of concerns
-
-Regardless of the specific style the project uses (hexagonal, clean architecture, MVC, feature-sliced), enforce the universal dependency rule:
+### Architecture: separation of concerns
 
 **Business logic must not depend on delivery mechanisms or infrastructure.**
 
-Concretely, identify three zones in any codebase:
+Identify three zones:
+1. **Core / domain** — business rules, entities, calculations. Pure: no HTTP, no SQL, no SDK imports, no framework types.
+2. **Application / orchestration** — use cases that coordinate the core via abstractions.
+3. **Edges** — everything touching the outside world: HTTP handlers, DB access, external APIs, file IO, UI.
 
-1. **Core / domain** — business rules, entities, calculations. Pure: no HTTP, no SQL, no SDK imports, no framework types. Depends on abstractions (interfaces/protocols/traits) it defines itself.
-2. **Application / orchestration** — use cases that coordinate the core via those abstractions. Still free of transport and vendor details.
-3. **Edges** — everything that touches the outside world: HTTP handlers/controllers, DB access, external API clients, file IO, UI rendering. Edges depend inward; the core NEVER depends on edges.
+FORBIDDEN in any project: business logic inside handlers; core importing framework/vendor; persistence models leaking across boundaries; circular dependencies.
 
-FORBIDDEN in any project:
-- Business logic inside an HTTP handler, controller, UI component, or CLI entry point (these must be thin: parse → call → map)
-- Core/domain code importing a framework, ORM, HTTP client, or vendor SDK
-- Persistence models (ORM entities, DB rows) leaking across layer boundaries into responses/views — map to dedicated types
-- Circular dependencies between modules
+### Data safety (universal)
 
-If the project already violates this, do not spread the violation — new code follows the rule, and flag the debt.
+- Every query/operation on multi-user data MUST scope by owning identity (user id, org id) as explicit parameter.
+- Never hardcode secrets, keys, or credentials.
+- All external input validated at the edge before reaching core logic.
 
-Read `references/architecture-patterns.md` when designing a new module/feature structure or when unsure how to apply layering in a specific paradigm (backend service, frontend app, CLI, data pipeline).
+### Testing
 
-When working on infrastructure code (Terraform/OpenTofu, CloudFormation, Pulumi, CDK, Ansible, Kubernetes manifests, Helm, or any IaC tool), read `references/infrastructure-as-code.md` — it contains tool-agnostic rules for module structure, secrets, least privilege, version pinning, and destructive-change discipline.
-
-## Data safety (universal)
-
-- Any code touching multi-user or multi-tenant data MUST scope every query/operation by the owning identity (user id, org id, account id) as an explicit parameter — never inferred implicitly deep inside. If unsure whether data is scoped, ask; do not guess.
-- Never hardcode secrets, keys, or credentials. Configuration comes from environment/config layers.
-- All external input is validated at the edge before reaching core logic.
-
-## Anti-patching rule (maintainability)
-
-When modifying existing code:
-
-1. **Do not just bolt on.** Before adding to a file, check: is it already near/over 550 lines, or is the target function already complex? If yes, propose a small extraction/refactor as part of the change.
-2. **Boy scout rule**: leave touched code slightly better — but keep refactors scoped to what you touch; do not rewrite unrelated code in the same change.
-3. If a "quick fix" would add another special-case branch to an already-branchy function, extract a strategy/handler/lookup instead.
-4. Never duplicate an existing function with a slight variation ("processDataV2") — parameterize or compose.
-5. Flag tech debt explicitly: if the proper fix is out of scope, say so and describe the follow-up. Hidden debt is a violation.
-
-## Clean code rules
-
-- **DRY, not premature**: extract on the 2nd–3rd real duplication, not speculatively.
-- **Naming describes intent**: `syncCalendarEvents`, not `processData` / `handleStuff` / `doWork`. No cryptic abbreviations except universal ones (id, db, url, i in a tiny loop).
-- **No dead code**: no commented-out blocks, unused imports, or unreachable branches in final output.
-- **Errors are handled, not swallowed**: no bare/empty catch. Raise meaningful, specific errors in core logic; translate to transport-appropriate errors (HTTP status, exit code, UI message) only at the edge.
-- **Types**: use the strongest typing the language offers (type hints, strict mode, no `any`-equivalents).
-- **Immutability by default** where the language supports it cheaply; mutate only with reason.
-- **Comments explain WHY, not what.** If code needs a "what" comment, rename or restructure instead.
-
-## Testing
-
-- Core/application logic must be testable without a real DB, network, or filesystem — that is the payoff of depending on abstractions.
-- Every new use case / significant behavior gets at least one unit test. Bug fixes get a regression test reproducing the bug.
-- If the project has no test infrastructure, note it and propose the minimal setup rather than skipping silently.
-
-## Code review mode
-
-When asked to review code or a PR, use `references/review-checklist.md` and report findings grouped by severity (blocker / should-fix / nit), citing file:line with a concrete fix for each. Always check: layer violations, data scoping, size limits, patch-on-patch smell, swallowed errors.
-
-When asked to rate, score, or audit code quality — or when a review covers a substantial change and a summary would help — additionally apply `references/quality-scorecard.md`: score Maintainability, Scalability, Performance, Security, DRY, and Readability on 1–5 anchors with evidence, plus the top 3 actions to improve.
+- Core/application logic must be testable without real DB, network, or filesystem.
+- Every new use case gets at least one unit test. Bug fixes get a regression test.
+- **Use the project's existing test framework** (discovered in Phase 0) — don't invent a new one.
 
 ## Output discipline
 
