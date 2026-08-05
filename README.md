@@ -9,8 +9,8 @@ Engineering standards that work with **ANY** project — Node, Python, Go, Rust,
 cp -r plugins/engineering-standards ~/.claude/skills/engineering-standards
 cp -r plugins/engineering-standards-ci ~/.claude/skills/engineering-standards-ci
 
-# Option 2: Via marketplace (for distributed use)
-/plugin marketplace add uninote-plugins
+# Option 2: Via marketplace
+/plugin marketplace add engineering-standards
 /plugin install engineering-standards
 
 # After install, start a new Claude Code session
@@ -27,7 +27,7 @@ This plugin uses a **Project Discovery Protocol** — before applying any rules,
 - What linting / style tools are configured
 - What directory conventions the project follows
 
-Then it **adapts the rules to your project** instead of forcing your project to adapt to generic rules. Works with ANY project — no configuration, no setup, no `@org-name` needed.
+Then it **adapts the rules to your project** instead of forcing your project to adapt to generic rules. Works with ANY project — no configuration, no setup.
 
 ### What it does automatically
 
@@ -93,6 +93,6 @@ To release to marketplace:
 
 Users refresh with:
 ```
-/plugin marketplace update uninote-plugins
+/plugin marketplace update engineering-standards
 ```
 
