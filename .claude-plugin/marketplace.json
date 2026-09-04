@@ -4,15 +4,15 @@
     "name": "Uninote Engineering"
   },
   "metadata": {
-    "description": "Universal engineering standards for Claude Code — project discovery, architecture layering, file/function limits, DRY, security, anti-patching, code review, quality scoring, and CI enforcement. Works with any project type.",
-    "version": "1.1.0"
+    "description": "Universal engineering standards for Claude Code \u2014 project discovery, greenfield bootstrap, architecture layering, file/function limits, DRY, security, anti-patching, code review, quality scoring, CI enforcement, and hook-level enforcement. Works with any project type.",
+    "version": "1.2.0"
   },
   "plugins": [
     {
       "name": "engineering-standards",
       "source": "./plugins/engineering-standards",
-      "description": "Universal engineering standards for Claude Code — auto-detects your project, adapts rules, and enforces architecture layering, size limits, DRY, security, and clean code. Includes CI enforcement (GitHub Actions, pre-commit, PR templates). No configuration needed.",
-      "version": "1.1.0",
+      "description": "Universal engineering standards for Claude Code \u2014 auto-detects your project (or bootstraps an empty one), adapts rules, and enforces architecture layering, size limits, DRY, security, and clean code. Hooks block oversized writes and hardcoded secrets; includes CI enforcement (GitHub Actions, pre-commit, PR templates).",
+      "version": "1.2.0",
       "category": "development"
     }
   ]

@@ -29,7 +29,7 @@ src/
 └── shared/                  # Reusable UI, base API client, utilities
 ```
 
-- Component/view files ≤ 200 lines; extract sub-components and logic units.
+- Component/view files obey the universal ≤ 550-line limit; extract sub-components and logic units well before reaching it.
 - Server data flows through a data-fetching layer; do not mirror it into ad-hoc local state.
 - User-facing strings go through the i18n layer if the project has one.
 
@@ -49,7 +49,7 @@ Even a script follows the rule in miniature:
 ## Choosing granularity
 
 - Small project (< ~15 files): folders may collapse (e.g., `core/` + `adapters/` only), but the import direction rule still holds.
-- Growing project: split when a file crosses the 400-line limit or a folder loses cohesion — not before.
+- Growing project: split when a file crosses the 550-line limit or a folder loses cohesion — not before.
 - Never introduce layers speculatively ("we might need CQRS") — add structure when a rule (size, purity, duplication) forces it.
 
 ## Enforcement hooks (recommend per ecosystem)

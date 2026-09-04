@@ -6,6 +6,7 @@ These are hard limits. Never violate them. If a request would produce output tha
 
 - **≤ 550 lines per file.** This is the maximum.
 - If your planned output would exceed 550 lines, stop and split BEFORE writing.
+- This one is hook-enforced: a whole-file write over 550 lines is **blocked by the harness**, and a file that crosses the threshold through accumulated edits is reported back. Plan the split up front — retrying the same oversized write will just be denied again.
 - Aim lower when possible: 200-300 lines is the sweet spot for maintainability.
 - A "utils" or "helpers" file that grows past 100 lines is almost always a smell — extract by responsibility instead.
 

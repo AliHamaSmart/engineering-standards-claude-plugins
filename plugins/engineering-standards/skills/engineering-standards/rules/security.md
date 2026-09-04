@@ -9,7 +9,7 @@ These rules apply whenever code touches data access, authentication, user input,
 
 ## Secrets and credentials
 
-- Never hardcode secrets, keys, or credentials in source code.
+- Never hardcode secrets, keys, or credentials in source code. This is hook-enforced: content carrying a recognizable credential is **blocked by the harness** before it reaches disk.
 - Configuration comes from environment variables, config files, or secret managers.
 - `.env` files and credential files are NEVER committed to version control.
 - If a project has no secret management, flag it as tech debt and propose a minimal setup.

@@ -37,7 +37,7 @@ If the project already violates this, do not spread the violation — new code f
 1. Scan directory structure and existing naming — if you see `core/`, `domain/`, `usecases/`, `handlers/`, `api/`, `features/`, follow those.
 2. Check `CLAUDE.md`, `tsconfig`, `package.json`, `pyproject.toml`, or project-style guides for layer conventions.
 3. Infer layers from import direction: files importing only stdlib are candidates for core; files importing `express`, `prisma`, `axios` are edges.
-4. If no structure exists, propose a minimal split and implement the split — don't dump everything in one place.
+4. If no structure exists, propose a minimal split and implement the split — don't dump everything in one place. If the repo is entirely empty, this is greenfield: follow `references/greenfield-bootstrap.md` instead of inventing a split ad hoc.
 
 ## Data safety (universal)
 

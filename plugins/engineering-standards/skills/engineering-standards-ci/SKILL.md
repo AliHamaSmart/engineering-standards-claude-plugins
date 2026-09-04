@@ -36,6 +36,21 @@ Before generating configs, scan the project:
 2. Check for existing CI config (`.github/`, `.gitlab-ci.yml`, `Jenkinsfile`)
 3. Check for existing linting/testing setup
 4. Use existing tools when possible (don't reinvent)
+5. If the scan finds NO manifest and NO tooling, see "Greenfield" below — there is nothing to detect yet
+
+## Greenfield (no manifest, no tooling)
+
+"Use existing tools, don't reinvent" has no answer in an empty repo, so do not stall on it:
+
+- If invoked as **step 6 of `references/greenfield-bootstrap.md`** (from the `engineering-standards`
+  skill), the manifest, linter, and test command already exist as of steps 1-4 — detect them
+  normally and generate CI around those exact commands.
+- If invoked **directly on an empty repo**, do not generate CI first. CI that lints and tests
+  nothing is noise. Say so, and point the user at the bootstrap sequence — CI is meaningful only
+  once there is a test command to run.
+
+Never invent a linter or test runner that the project does not have installed: a workflow calling
+a missing binary is a red CI badge, not enforcement.
 
 ## Templates
 
@@ -91,3 +106,7 @@ Apply these engineering standards in CI:
 ## Customization
 
 If the project already has CI config, ADD to it rather than replacing. Preserve existing jobs and steps.
+
+Where the linter supports the limits natively, configure them there (`max-lines: 550`,
+`max-lines-per-function: 40`, `max-depth: 3`, `max-params: 5`) instead of adding a bespoke
+line-counting script — one enforcement path, and it runs locally too.

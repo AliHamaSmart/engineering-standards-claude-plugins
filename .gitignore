@@ -13,3 +13,7 @@ node_modules/
 .vscode/
 *.swp
 *.swo
+
+# Python (hook script bytecode)
+__pycache__/
+*.py[cod]

@@ -11,7 +11,7 @@ The layering rule translated to IaC:
 
 FORBIDDEN:
 - Environment values (account ids, instance sizes, domain names) hardcoded inside a reusable module — inject via variables/parameters.
-- One giant file defining everything ("main.tf with 2000 lines" or a single mega-template) — same ≤400-line file rule applies; split by resource domain (network, compute, data, iam).
+- One giant file defining everything ("main.tf with 2000 lines" or a single mega-template) — same ≤ 550-line file rule applies; split by resource domain (network, compute, data, iam).
 - Copy-pasting a module per environment with small edits — parameterize instead (the IaC version of `processDataV2`).
 
 ## Hard rules

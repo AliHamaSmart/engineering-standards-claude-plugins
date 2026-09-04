@@ -1,7 +1,7 @@
 {
   "name": "engineering-standards",
-  "version": "1.1.0",
-  "description": "Universal engineering standards enforced on every code change: project discovery protocol, architecture layering, file/function size limits, DRY, security, anti-patching rules, review checklist, quality scorecard, and CI enforcement templates.",
+  "version": "1.2.0",
+  "description": "Universal engineering standards enforced on every code change: project discovery with a greenfield bootstrap path, architecture layering, file/function size limits, DRY, security, anti-patching rules, review checklist, quality scorecard, CI enforcement templates, and hooks that block oversized writes and hardcoded secrets deterministically.",
   "author": {
     "name": "Uninote Engineering"
   },
@@ -16,5 +16,6 @@
       "path": "skills/engineering-standards-ci",
       "description": "Generate CI/CD configurations that enforce engineering standards in your pipeline. Detects project type and generates GitHub Actions workflows, pre-commit hooks, and PR templates with engineering standards checks."
     }
-  ]
+  ],
+  "hooks": "./hooks/hooks.json"
 }

@@ -29,9 +29,27 @@ Examples of what discovery might reveal:
 - `Cargo.toml` → Rust project; use `clippy` rules, follow `rustfmt` conventions.
 - `requirements.txt` + `Makefile` (with `test` target) → Python; use whatever test runner the Makefile/test target invokes.
 - `Gemfile` → Ruby; use whatever gem-based linting the project has.
-- **No project files at all** → apply default universal rules below, and flag the lack of tooling as tech debt to propose.
+- **No project files at all** → this is a GREENFIELD project: take the branch below instead of inferring.
 
 Discovery is lightweight and stateless — re-run it at the start of every new task to account for project evolution.
+
+### Phase 0 branch: brownfield or greenfield
+
+Discovery either finds a project or it doesn't. Those are two different jobs:
+
+```
+Phase 0 scan
+  ├─ manifest OR source files OR CLAUDE.md present  → BROWNFIELD: infer and adapt (rules below)
+  └─ none of the above (only .git / README / LICENSE) → GREENFIELD: read
+                                                        references/greenfield-bootstrap.md FIRST
+```
+
+**Greenfield is not "brownfield with fewer files".** There is nothing to infer, so inference is
+replaced by a decision step (ask the user the stack questions, with recommendations and reasons)
+followed by a fixed bootstrap order: tooling before features, then a real vertical slice, then a
+`CLAUDE.md` that makes the next session brownfield. Two rules also invert — missing tooling is
+work to do rather than debt to flag, and the minimum skeleton is not "speculative structure".
+`references/greenfield-bootstrap.md` has the full sequence; do not improvise it.
 
 ## Rules (modular — read the relevant ones as needed)
 
@@ -47,6 +65,7 @@ Discovery is lightweight and stateless — re-run it at the start of every new t
 
 | File | When to read |
 |------|-------------|
+| `references/greenfield-bootstrap.md` | **Phase 0 detected an empty repo** — read before writing anything |
 | `references/architecture-patterns.md` | Designing a new module/feature structure |
 | `references/infrastructure-as-code.md` | Working on IaC (Terraform, Pulumi, CDK, Ansible, K8s, Helm) |
 | `references/review-checklist.md` | Asked to review code or a PR |
