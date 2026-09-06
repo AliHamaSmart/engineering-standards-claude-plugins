@@ -103,6 +103,23 @@ Apply these engineering standards in CI:
 - Business logic separated from infrastructure
 - Tests required for new functionality
 
+## Workflow pitfalls (do not regenerate these)
+
+The bundled template was rewritten to avoid three failure modes that produce a green badge over
+a pipeline that enforced nothing. Any workflow you generate must avoid them too:
+
+1. **`matrix` is not available in a job-level `if`.** Only `github`, `needs`, `vars` and `inputs`
+   are. A job gated on `needs.detect.outputs.type == matrix.type` compares against null, so every
+   leg skips silently. Detect once in a step, then gate **steps** on `steps.<id>.outputs`.
+2. **Never `|| true` on a lint or test command.** It swallows the signal — the same error-swallowing
+   the clean-code rule forbids. If a check is genuinely advisory (dependency audits, say), mark it
+   `continue-on-error: true` so the result stays visible, and say in a comment why.
+3. **A hard-limit violation is `::error::`, not `::warning::`.** A warning that also exits non-zero
+   just teaches people to distrust the annotations.
+
+Also required in every generated workflow: a least-privilege `permissions:` block (`contents: read`
+unless a step needs more) and a `concurrency:` group so superseded runs are cancelled.
+
 ## Customization
 
 If the project already has CI config, ADD to it rather than replacing. Preserve existing jobs and steps.

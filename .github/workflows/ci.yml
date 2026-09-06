@@ -1,0 +1,85 @@
+# This repo eats its own cooking: the hooks it ships are tested, and the
+# manifests it publishes are validated, on every push and PR.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Hook contract tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run hook tests
+        run: python3 tests/test_hooks.py
+
+  validate:
+    name: Validate manifests & standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Manifests are valid JSON with matching versions
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          plugin = json.load(open("plugins/engineering-standards/.claude-plugin/plugin.json"))
+          market = json.load(open(".claude-plugin/marketplace.json"))
+          json.load(open("plugins/engineering-standards/hooks/hooks.json"))
+          versions = {
+              "plugin.json": plugin["version"],
+              "marketplace.metadata": market["metadata"]["version"],
+              "marketplace.plugins[0]": market["plugins"][0]["version"],
+          }
+          if len(set(versions.values())) != 1:
+              raise SystemExit(f"version mismatch: {versions}")
+          print(f"manifests valid, version {plugin['version']}")
+          PY
+
+      - name: Hook scripts obey the plugin's own limits
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import ast, pathlib
+          violations = []
+          for path in sorted(pathlib.Path("plugins/engineering-standards/hooks/scripts").glob("*.py")):
+              source = path.read_text()
+              if len(source.splitlines()) > 550:
+                  violations.append(f"{path}: file over 550 lines")
+              for node in ast.walk(ast.parse(source)):
+                  if not isinstance(node, ast.FunctionDef):
+                      continue
+                  length = node.end_lineno - node.lineno + 1
+                  params = len(node.args.args) + len(node.args.kwonlyargs)
+                  if length > 40:
+                      violations.append(f"{path}:{node.lineno} {node.name} is {length} lines")
+                  if params > 5:
+                      violations.append(f"{path}:{node.lineno} {node.name} takes {params} params")
+          if violations:
+              raise SystemExit("\n".join(violations))
+          print("hook scripts within limits")
+          PY
+
+      - name: Line limits are stated consistently
+        run: |
+          set -euo pipefail
+          if grep -rnE '(≤ ?|<= ?)(400|200)[- ]line' plugins/ README.md; then
+            echo "::error::found a line limit other than 550 — the limit must be stated consistently"
+            exit 1
+          fi
+          echo "line limits consistent"
