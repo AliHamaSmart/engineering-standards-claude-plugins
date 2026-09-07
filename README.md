@@ -76,6 +76,12 @@ cache abstraction, or auth system until something actually needs it.
 /plugin marketplace add <this-repo-url>
 /plugin install engineering-standards
 
+# Or from the CLI, e.g. to try a local checkout. Note the `./` — a bare `.`
+# is rejected as an invalid source format.
+claude plugin marketplace add ./
+claude plugin install engineering-standards@engineering-standards
+claude plugin details engineering-standards   # confirms 2 skills + 3 hooks registered
+
 # Alternative — skills only, no hook enforcement
 cp -r plugins/engineering-standards/skills/engineering-standards    ~/.claude/skills/
 cp -r plugins/engineering-standards/skills/engineering-standards-ci ~/.claude/skills/
@@ -294,11 +300,13 @@ plugins/engineering-standards/
 ## Contributing
 
 ```bash
-python3 tests/test_hooks.py     # 24 contract tests, no dependencies
+python3 tests/test_hooks.py                          # 28 contract tests, no dependencies
+claude plugin validate plugins/engineering-standards # manifest schema
+claude plugin validate .                             # marketplace schema
 ```
 
 The hooks are tested through their real interface — a JSON payload on stdin, a decision on stdout —
-covering blocks, allows, path exemptions, secret false-positives, and fail-open behavior. CI also
+covering blocks, allows, path exemptions, secret false-positives, prefixed credential names, and fail-open behavior. CI also
 checks that the hook scripts obey the plugin's own limits and that the manifest versions agree.
 
 ## For Maintainers

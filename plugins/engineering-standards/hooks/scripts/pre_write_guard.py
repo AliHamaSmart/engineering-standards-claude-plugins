@@ -22,8 +22,15 @@ SECRET_PATTERNS = [
     (re.compile(r"AIza[0-9A-Za-z_\-]{35}"), "Google API key"),
     (re.compile(r"sk-[A-Za-z0-9]{32,}"), "OpenAI-style secret key"),
     (
+        # A leading \b would not fire on DB_PASSWORD or AWS_SECRET_ACCESS_KEY:
+        # underscore is a word character, so there is no boundary after it. The
+        # prefix class matches the namespace instead. Suffixes are deliberately
+        # NOT allowed, which keeps identifiers like `secretName` out of scope.
         re.compile(
-            r"""(?i)\b(api[_-]?key|secret|password|passwd|token|credential)s?\s*"""
+            r"""(?i)[a-z0-9_.\-]*"""
+            r"""(secret[_-]?access[_-]?key|access[_-]?key|client[_-]?secret"""
+            r"""|auth[_-]?token|api[_-]?key|private[_-]?key"""
+            r"""|password|passwd|secret|token|credential)s?\s*"""
             r"""[:=]\s*["'][^"'\s]{12,}["']"""
         ),
         "credential assigned a literal value",

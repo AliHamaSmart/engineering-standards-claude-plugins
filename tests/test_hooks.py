@@ -127,6 +127,21 @@ class PreWriteSecretGuard(unittest.TestCase):
     def test_allows_env_example_file(self):
         self.assert_allowed("/x/.env.example", "API_KEY=sk-1234567890abcdefghij1234567890abcd")
 
+    def test_blocks_prefixed_env_var_password(self):
+        """Regression: a leading \\b never fires after an underscore, so every
+        DB_/AWS_/MY_-prefixed credential name bypassed the guard. Found by
+        end-to-end test, missed by the original bare-`password` case."""
+        self.assert_blocked("/x/src/config.py", 'DB_PASSWORD = "Kj8mNp2QrTv5Xz9W"')
+
+    def test_blocks_prefixed_aws_secret_access_key(self):
+        self.assert_blocked("/x/src/a.py", 'AWS_SECRET_ACCESS_KEY = "abcdefghij1234567890"')
+
+    def test_blocks_prefixed_api_key(self):
+        self.assert_blocked("/x/src/a.ts", 'const MY_API_KEY = "aB3dE5fG7hJ9kL1mN3pQ";')
+
+    def test_allows_non_string_token_identifier(self):
+        self.assert_allowed("/x/src/a.ts", "const tokenCount = 42;")
+
     def test_allows_identifier_named_secret(self):
         self.assert_allowed("/x/src/a.ts", 'const secretName = "billing-cred-ref";')
 
