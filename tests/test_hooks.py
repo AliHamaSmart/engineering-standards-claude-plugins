@@ -139,6 +139,18 @@ class PreWriteSecretGuard(unittest.TestCase):
     def test_blocks_prefixed_api_key(self):
         self.assert_blocked("/x/src/a.ts", 'const MY_API_KEY = "aB3dE5fG7hJ9kL1mN3pQ";')
 
+    def test_blocks_separator_suffixed_secret_key(self):
+        """Regression: the keyword list had secret_access_key but not
+        secret_key, so STRIPE_/DJANGO_/JWT_SECRET_KEY all passed. Found by
+        driving the GitHub-installed copy, not by the earlier fixtures."""
+        self.assert_blocked("/x/src/settings.py", 'STRIPE_SECRET_KEY = "sk_live_51QxRtYmNpKjW8vZ2"')
+
+    def test_blocks_django_secret_key(self):
+        self.assert_blocked("/x/src/settings.py", 'DJANGO_SECRET_KEY = "django-insecure-9x2mQ"')
+
+    def test_blocks_aws_access_key_id(self):
+        self.assert_blocked("/x/src/a.py", 'AWS_ACCESS_KEY_ID = "AKIAQ7RZBM4XKPLDW2VC"')
+
     def test_allows_non_string_token_identifier(self):
         self.assert_allowed("/x/src/a.ts", "const tokenCount = 42;")
 

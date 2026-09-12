@@ -22,15 +22,18 @@ SECRET_PATTERNS = [
     (re.compile(r"AIza[0-9A-Za-z_\-]{35}"), "Google API key"),
     (re.compile(r"sk-[A-Za-z0-9]{32,}"), "OpenAI-style secret key"),
     (
-        # A leading \b would not fire on DB_PASSWORD or AWS_SECRET_ACCESS_KEY:
-        # underscore is a word character, so there is no boundary after it. The
-        # prefix class matches the namespace instead. Suffixes are deliberately
-        # NOT allowed, which keeps identifiers like `secretName` out of scope.
+        # Enumerating compound names kept missing one (DB_PASSWORD, then
+        # SECRET_KEY). Two structural rules replace the list:
+        #   prefix  [a-z0-9_.-]*  — a leading \b never fires after an
+        #                           underscore, since _ is a word character
+        #   suffix  (?:[_-]\w+)*  — separator-joined only, so SECRET_KEY and
+        #                           STRIPE_SECRET_KEY match while the camelCase
+        #                           `secretName` and `tokenCount` do not
         re.compile(
             r"""(?i)[a-z0-9_.\-]*"""
-            r"""(secret[_-]?access[_-]?key|access[_-]?key|client[_-]?secret"""
-            r"""|auth[_-]?token|api[_-]?key|private[_-]?key"""
-            r"""|password|passwd|secret|token|credential)s?\s*"""
+            r"""(secret|password|passwd|token|credential"""
+            r"""|api[_-]?key|access[_-]?key|private[_-]?key)"""
+            r"""s?(?:[_-][a-z0-9]+)*\s*"""
             r"""[:=]\s*["'][^"'\s]{12,}["']"""
         ),
         "credential assigned a literal value",
