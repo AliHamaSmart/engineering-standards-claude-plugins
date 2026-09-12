@@ -330,6 +330,11 @@ The hooks are tested through their real interface — a JSON payload on stdin, a
 covering blocks, allows, path exemptions, secret false-positives, prefixed credential names, and fail-open behavior. CI also
 checks that the hook scripts obey the plugin's own limits and that the manifest versions agree.
 
+## License
+
+MIT — see [LICENSE](LICENSE). Copyright holder is "Uninote Engineering", matching the `author`
+already declared in both manifests; change both together if that is not the right entity.
+
 ## For Maintainers
 
 To release to marketplace:

@@ -4,5 +4,6 @@
   "description": "Universal engineering standards enforced on every code change: project discovery with a greenfield bootstrap path, architecture layering, file/function size limits, DRY, security, anti-patching rules, review checklist, quality scorecard, CI enforcement templates, and hooks that block oversized writes and hardcoded secrets deterministically.",
   "author": {
     "name": "Uninote Engineering"
-  }
+  },
+  "license": "MIT"
 }
