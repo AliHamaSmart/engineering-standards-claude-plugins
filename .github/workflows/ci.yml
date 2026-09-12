@@ -75,6 +75,23 @@ jobs:
           print("hook scripts within limits")
           PY
 
+      - name: Manifest does not redeclare the standard hooks file
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          manifest = json.load(open("plugins/engineering-standards/.claude-plugin/plugin.json"))
+          declared = manifest.get("hooks")
+          # hooks/hooks.json is auto-loaded. Naming it again makes the plugin fail
+          # to load with "Duplicate hooks file detected" — and `plugin validate`
+          # does not catch it, so this check stands in for it.
+          if declared in ("./hooks/hooks.json", "hooks/hooks.json"):
+              raise SystemExit(f"manifest.hooks redeclares the auto-loaded file: {declared}")
+          if "skills" in manifest:
+              raise SystemExit("manifest.skills must be paths or omitted; skills/ is auto-discovered")
+          print("manifest hook/skill declarations clean")
+          PY
+
       - name: Line limits are stated consistently
         run: |
           set -euo pipefail
