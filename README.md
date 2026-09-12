@@ -71,27 +71,48 @@ cache abstraction, or auth system until something actually needs it.
 
 ## How to install
 
-```bash
-# Recommended — install as a plugin (skills AND hooks)
-/plugin marketplace add <this-repo-url>
+Two commands, from inside Claude Code:
+
+```
+/plugin marketplace add AliHamaSmart/engineering-standards-claude-plugins
 /plugin install engineering-standards
+```
 
-# Or from the CLI, e.g. to try a local checkout. Note the `./` — a bare `.`
-# is rejected as an invalid source format.
-claude plugin marketplace add ./
+Then **start a new session** — hooks and skills load at session start. That is the whole setup:
+no config file to write, no per-project step, no dependencies to install. It applies to every
+project you open, and adapts to each one at the start of every task.
+
+Verify it took:
+
+```bash
+claude plugin details engineering-standards
+#   Skills (2)  engineering-standards, engineering-standards-ci
+#   Hooks (3)   SessionStart, PreToolUse, PostToolUse
+```
+
+Requires `python3` on PATH for the hooks — present by default on Ubuntu, macOS with Xcode CLT,
+and every mainstream distro. Without it the skills still work; the hooks report a non-blocking
+error and enforce nothing.
+
+<details>
+<summary>Other install routes</summary>
+
+```bash
+# From the CLI instead of the slash command
+claude plugin marketplace add AliHamaSmart/engineering-standards-claude-plugins
 claude plugin install engineering-standards@engineering-standards
-claude plugin details engineering-standards   # confirms 2 skills + 3 hooks registered
 
-# Alternative — skills only, no hook enforcement
+# From a local checkout, for working on the plugin itself.
+# Note the `./` — a bare `.` is rejected as an invalid source format.
+claude plugin marketplace add ./
+
+# Skills only, no hook enforcement — the size and secret checks become
+# advice rather than enforcement.
 cp -r plugins/engineering-standards/skills/engineering-standards    ~/.claude/skills/
 cp -r plugins/engineering-standards/skills/engineering-standards-ci ~/.claude/skills/
 ```
 
-After install, **start a new Claude Code session**. The skills auto-activate on every code write,
-modification, or review.
-
-> Copying only the skill directories leaves the hooks behind, so the size and secret checks become
-> advice instead of enforcement. Install as a plugin unless you specifically want the softer mode.
+</details>
 
 ## Enforcement layers
 
