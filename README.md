@@ -82,17 +82,72 @@ Then **start a new session** — hooks and skills load at session start. That is
 no config file to write, no per-project step, no dependencies to install. It applies to every
 project you open, and adapts to each one at the start of every task.
 
-Verify it took:
+### Verify it took
 
 ```bash
 claude plugin details engineering-standards
 #   Skills (2)  engineering-standards, engineering-standards-ci
 #   Hooks (3)   SessionStart, PreToolUse, PostToolUse
+#   Always-on:  ~391 tok   added to every session
+
+claude plugin list      # Status should read: ✔ enabled
 ```
 
-Requires `python3` on PATH for the hooks — present by default on Ubuntu, macOS with Xcode CLT,
-and every mainstream distro. Without it the skills still work; the hooks report a non-blocking
-error and enforce nothing.
+If `plugin list` shows anything other than `✔ enabled`, read the error there — `plugin validate`
+does not catch every load failure, so `list` is the authoritative check.
+
+### What you'll notice afterwards
+
+| When | What happens |
+|------|--------------|
+| Every session starts | A short standards digest enters context — limits, layering, data safety |
+| You ask for code | Phase 0 scans the project first and reports what it found in a line or two, then writes code adapted to your existing test runner and linter |
+| A write would exceed 550 lines | **Blocked** before it reaches disk, with the reason. Claude plans a module split instead of retrying |
+| A write carries a credential | **Blocked.** Claude rewrites it to read from the environment |
+| A file passes 450 / 550 lines | Reported back so the split happens now, not three edits later |
+| The repo is empty | Greenfield: you get stack questions with recommendations before any code is written |
+
+Nothing is blocked silently — every block states what tripped and what to do instead.
+
+### Requirements
+
+Claude Code v1.0+, and `python3` on PATH used only by the hooks. Stdlib only, nothing to
+`pip install`. Present by default on Ubuntu, Debian, Fedora, and macOS with Xcode CLT. Without it
+the skills still work; the hooks report a non-blocking error and enforce nothing.
+
+No other dependencies, and no project setup — it works against any language or framework. A git
+repo is needed only for the CI-template generation.
+
+### Update, disable, uninstall
+
+```bash
+claude plugin update engineering-standards      # pull the latest published version
+claude plugin disable engineering-standards     # keep it installed, stop it loading
+claude plugin enable engineering-standards
+claude plugin uninstall engineering-standards   # remove entirely
+```
+
+Updates are not automatic — run `update` to pick up new rules or hook fixes. Restart the session
+after any of these; plugins load at session start.
+
+### Scope
+
+Installing as above enables it for **your user**, in every project you open. To scope it to one
+repo instead, put this in that repo's `.claude/settings.json` and skip the user-level install:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "engineering-standards": {
+      "source": { "source": "github", "repo": "AliHamaSmart/engineering-standards-claude-plugins" }
+    }
+  },
+  "enabledPlugins": { "engineering-standards@engineering-standards": true }
+}
+```
+
+Committing that file gives every teammate the plugin when they open the repo, with no setup on
+their side. A marketplace name can only have one source, so do not declare it both ways.
 
 <details>
 <summary>Other install routes</summary>
@@ -285,20 +340,12 @@ plugins/engineering-standards/
 | `.csproj` or `.sln` | C# | dotnet format, dotnet test |
 | `pom.xml` or `build.gradle` | Java/Kotlin | checkstyle, Spotless, JUnit |
 
-## Requirements
-
-- Claude Code v1.0+
-- Git repository (for CI template generation)
-- `python3` on PATH — needed by the hooks only (stdlib only, no packages to install). Without it
-  the hooks exit as a non-blocking error and the skills still work
-- No other dependencies — works with any project
-
 ## Troubleshooting
 
 **Plugin not activating?**
-- Make sure you started a new session after install
-- Check `~/.claude/skills/engineering-standards/SKILL.md` exists
-- Run `/plugin list` to verify it's installed
+- Start a new session — plugins load at session start, not mid-session
+- `claude plugin list` must show `✔ enabled`. Any other status prints the reason
+- `claude plugin update engineering-standards` if you installed before a fix you are expecting
 
 **Rules not adapting to my project?**
 - The plugin scans top-level files on each task — make sure your project files are in the repo root
@@ -308,11 +355,27 @@ plugins/engineering-standards/
 - `/hooks` lists what the harness has registered — the three entries should appear there
 - Hooks load from a plugin install, not from a copy into `~/.claude/skills/`
 - Verify `python3 --version` works in the same shell Claude Code runs in
-- Test one directly: `echo '{"tool_input":{"file_path":"/x/a.ts","content":"..."}}' | python3 plugins/engineering-standards/hooks/scripts/pre_write_guard.py`
+- Drive the installed copy directly — this is the fastest way to see what a hook actually decides:
+
+  ```bash
+  HOOKS=$(find "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins" -path '*engineering-standards/hooks/scripts' -type d | head -1)
+  echo '{"tool_input":{"file_path":"/x/a.py","content":"API_KEY = \"aB3dE5fG7hJ9kL1mN3pQ\""}}' \
+    | python3 "$HOOKS/pre_write_guard.py"
+  # prints a deny decision; silence means the hook allowed it
+  ```
 
 **A hook blocked something legitimate?**
-- Oversized generated or data files: extend `_UNCHECKED_PATH` in `hooks/scripts/hooklib.py`
-- A false-positive secret: extend `PLACEHOLDER` or `SECRET_EXEMPT` in `hooks/scripts/pre_write_guard.py`
+
+Do not edit the installed copy — `claude plugin update` overwrites it. Open an issue or a PR
+against this repo so the fix reaches everyone:
+
+- Oversized generated or data files → the path exemption list `_UNCHECKED_PATH` in `hooks/scripts/hooklib.py`
+- A false-positive secret → `PLACEHOLDER` or `SECRET_EXEMPT` in `hooks/scripts/pre_write_guard.py`
+
+Every such report should come with the exact line that tripped, so it can become a test case.
+
+**Need it off for one session?** `claude plugin disable engineering-standards`, restart. That is
+better than working around a block, which defeats the check the hook exists to run.
 
 **CI template not generating?**
 - Make sure you're in a Git repository
@@ -321,7 +384,7 @@ plugins/engineering-standards/
 ## Contributing
 
 ```bash
-python3 tests/test_hooks.py                          # 28 contract tests, no dependencies
+python3 tests/test_hooks.py                          # 31 contract tests, no dependencies
 claude plugin validate plugins/engineering-standards # manifest schema
 claude plugin validate .                             # marketplace schema
 ```
